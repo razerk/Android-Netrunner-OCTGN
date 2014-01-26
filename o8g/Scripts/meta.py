@@ -305,28 +305,6 @@ def chkDoublePrevention():
    debugNotify("<<< chkDoublePrevention() with fullCostPrev = {}".format(fullCostPrev)) #Debug
    return fullCostPrev
  
-def scanTable(group = table, x=0,y=0):
-   debugNotify(">>> scanTable(){}".format(extraASDebug())) #Debug
-   global Stored_Name, Stored_Type, Stored_Cost, Stored_Keywords, Stored_AutoActions, Stored_AutoScripts
-   if not confirm("This action will clear the internal variables and re-scan all cards in the table to fix them.\
-                 \nThis action should only be used as a last-ditch effort to fix some weird behaviour in the game (e.g. treating an Ice like Agenda, or something silly like that)\
-               \n\nHowever this may take some time, depending on your PC power.\
-                 \nAre you sure you want to proceed?"): return
-   Stored_Name.clear()
-   Stored_Type.clear()
-   Stored_Cost.clear()
-   Stored_Keywords.clear()
-   Stored_AutoActions.clear()
-   Stored_AutoScripts.clear()
-   cardList = [card for card in table]
-   iter = 0
-   for c in cardList:
-      if iter % 10 == 0: whisper("Working({}/{} done)...".format(iter, len(cardList)))
-      storeProperties(c)
-      iter += 1
-   for c in me.hand: storeProperties(c)
-   notify("{} has re-scanned the table and refreshed their internal variables.".format(me))
- 
 def checkUnique (card, manual = False):
    debugNotify(">>> checkUnique(){}".format(extraASDebug())) #Debug
    mute()
@@ -537,23 +515,6 @@ def resetAll(): # Clears all the global variables in order to start a new game.
    elif debugVerbosity != -1 and confirm("Reset Debug Verbosity?"): debugVerbosity = -1    
    debugNotify("<<< resetAll()") #Debug   
    
-def checkQuickAccess():
-   debugNotify(">>> checkQuickAccess()") #Debug   
-   #if len(players) == 1: 
-      #notify(">>> checkQuickAccess") # Debug
-      #notify("## currentGameName = {}".format(currentGameName())) # Debug
-   if len(players) == 1 or re.search(r'(\[Quick Access\]|\[QA\])',currentGameName()):
-      #if len(players) == 1: notify("## About to get QuickAccessInfo Setting") # Debug
-      if getSetting('QuickAccessInfo',True):
-         information(":::INFO::: You have joined a [Quick Access] game for the first time.\
-                 \n\n'[Quick Access]' or '[QA]' games allow the runners to access servers without needing a confirmation from the corp that it's OK to access (i.e. using the OK button or F3)\
-                    \nAs such the game expects the runner to make use of the 'Access Imminent' button before pressing F3 to allow the corporation a chance to react.\
-                  \n\nThe mode was made to facilitate faster play on behalf of the runner. Please run responsibly.")
-         setSetting('QuickAccessInfo',False)
-      #if len(players) == 1: notify("## About to switchQuickAccess()") # Debug
-      switchQuickAccess(forced = True)
-   debugNotify("<<< checkQuickAccess()") #Debug   
-      
 def clearLeftoverEvents():
    debugNotify(">>> clearLeftoverEvents()") #Debug   
    debugNotify("About to clear all events from table")
@@ -772,38 +733,7 @@ def switchSounds(group,x=0,y=0):
       setSetting('Sounds', True)
       whisper("Sound effects have been switched on")
         
-def switchQuickAccess(group = table,x=0,y=0,forced = False, remoted = False):
-   #if len(players) == 1: notify(">>> switchQuickAccess()") # Debug
-   debugNotify(">>> switchQuickAccess(){}".format(extraASDebug())) #Debug
-   global askedQA
-   QAgame = re.search(r'(\[Quick Access\]|\[QA\])',currentGameName()) # If the game has [Quick Access] in the title, we don't allow to turn QA off.
-   if not forced and QAgame:
-      whisper(":::ERROR::: Sorry, you cannot cancel Quick Access in a [Quick Access] game.")
-   elif not forced and ds == None:
-      whisper(":::ERROR::: Please load a deck first.")
-   else:
-      QA = getGlobalVariable('Quick Access')
-      if ds == 'corp' or forced or len(players) == 1: # Checking that this is not a single-player game to avoid an infinite loop
-         if QA == 'False':
-            if remoted and not confirm("The runner would like to turn Quick Access on (i.e. not requiring corp confirmation before accessing a server). Do you accept?"): 
-               notify(":::INFO::: {} rejected the request to activate Quick Access!".format(me))
-            setGlobalVariable('Quick Access','True')
-            if QAgame: barNotifyAll("#009900",":::INFO::: This is a [Quick Access] Game!") 
-            else: barNotifyAll("#009900",":::INFO::: Quick Access has been activated!")
-         else: 
-            if remoted and not confirm("The runner would like to turn Quick Access off. Accept?"): 
-               notify(":::INFO::: {} rejected the request to disable Quick Access!".format(me))
-               return
-            setGlobalVariable('Quick Access','False')
-            barNotifyAll("#009900",":::INFO::: Quick Access has been disabled!")
-      else:
-         if askedQA: whisper(":::ERROR::: You've already asked the corp to enable QA once already. Please don't spam them.")
-         else:
-            whisper(":::INFO::: Asking for corporation confirmation to activate Quick Access...")
-            targetPL = findOpponent()
-            if targetPL != me: remoteCall(targetPL,'remoteAskQA',[]) # Checking player just in case we end up in an infinite loop.
-            askedQA = True # The runner can only ask once for QA in order not to spam the corp
-            
+
 def remoteAskQA():
    mute()
    switchQuickAccess(remoted = True)
@@ -862,77 +792,7 @@ def versionCheck():
    debugNotify(">>> versionCheck()") #Debug
    global startupMsg
    me.setGlobalVariable('gameVersion',gameVersion)
-   if not startupMsg: MOTD() # If we didn't give out any other message , we give out the MOTD instead.
-   startupMsg = True
-   ### Below code Not needed anymore in 3.1.x
-   # if not startupMsg:
-      # (url, code) = webRead('https://raw.github.com/db0/Android-Netrunner-OCTGN/master/current_version.txt')
-      # debugNotify("url:{}, code: {}".format(url,code), 2) #Debug
-      # if code != 200 or not url:
-         # whisper(":::WARNING::: Cannot check version at the moment.")
-         # return
-      # detailsplit = url.split('||')
-      # currentVers = detailsplit[0].split('.')
-      # installedVers = gameVersion.split('.')
-      # debugNotify("Finished version split. About to check", 2) #Debug
-      # if len(installedVers) < 3:
-         # whisper("Your game definition does not follow the correct version conventions. It is most likely outdated or modified from its official release.")
-         # startupMsg = True
-      # elif (num(currentVers[0]) > num(installedVers[0]) or 
-           # (num(currentVers[0]) == num(installedVers[0]) and num(currentVers[1]) > num(installedVers[1])) or 
-           # (num(currentVers[0]) == num(installedVers[0]) and num(currentVers[1]) == num(installedVers[1]) and num(currentVers[2]) > num(installedVers[2]))):
-         # notify("{}'s game definition ({}) is out-of-date!".format(me, gameVersion))
-         # if confirm("There is a new game definition available!\nYour version: {}.\nCurrent version: {}\n{}\
-                     # {}\
-                 # \n\nDo you want to be redirected to download the latest version?.\
-                   # \n(You'll have to download the game definition, any patch for the current version and the markers if they're newer than what you have installed)\
-                     # ".format(gameVersion, detailsplit[0],detailsplit[2],detailsplit[1])):
-            # openUrl('http://octgn.gamersjudgement.com/viewtopic.php?f=52&t=494')
-         # startupMsg = True
-      # debugNotify("Finished version check. Seeing if I should MOTD.", 2) #Debug
    debugNotify("<<< versionCheck()", 3) #Debug
-      
-      
-def MOTD():
-   debugNotify(">>> MOTD()") #Debug
-   #if me.name == 'db0' or me.name == 'dbzer0': return #I can't be bollocksed
-   (MOTDurl, MOTDcode) = webRead('https://raw.github.com/db0/Android-Netrunner-OCTGN/master/MOTD.txt',3000)
-   if MOTDcode != 200 or not MOTDurl:
-      whisper(":::WARNING::: Cannot fetch MOTD info at the moment.")
-      return
-   if getSetting('MOTD', 'UNSET') != MOTDurl: # If we've already shown the player the MOTD already, we don't do it again.
-      setSetting('MOTD', MOTDurl) # We store the current MOTD so that we can check next time if it's the same.
-      (DYKurl, DYKcode) = webRead('https://raw.github.com/db0/Android-Netrunner-OCTGN/master/DidYouKnow.txt',3000)
-      if DYKcode !=200 or not DYKurl:
-         whisper(":::WARNING::: Cannot fetch DYK info at the moment.")
-         return
-      DYKlist = DYKurl.split('||')
-      DYKrnd = rnd(0,len(DYKlist)-1)
-      while MOTDdisplay(MOTDurl,DYKlist[DYKrnd]) == 'MORE': 
-         MOTDurl = '' # We don't want to spam the MOTD for the further notifications
-         DYKrnd += 1
-         if DYKrnd == len(DYKlist): DYKrnd = 0
-   debugNotify("<<< MOTD()", 3) #Debug
-   
-def MOTDdisplay(MOTD,DYK):
-   debugNotify(">>> MOTDdisplay()") #Debug
-   if re.search(r'http',MOTD): # If the MOTD has a link, then we do not sho DYKs, so that they have a chance to follow the URL
-      MOTDweb = MOTD.split('&&')      
-      if confirm("{}".format(MOTDweb[0])): openUrl(MOTDweb[1].strip())
-   elif re.search(r'http',DYK):
-      DYKweb = DYK.split('&&')
-      if confirm("{}\
-              \n\nDid You Know?:\
-                \n------------------\
-                \n{}".format(MOTD,DYKweb[0])):
-         openUrl(DYKweb[1].strip())
-   elif confirm("{}\
-              \n\nDid You Know?:\
-                \n-------------------\
-                \n{}\
-                \n-------------------\
-              \n\nWould you like to see the next tip?".format(MOTD,DYK)): return 'MORE'
-   return 'STOP'
 
 def initGame(): # A function which prepares the game for online submition
    debugNotify(">>> initGame()") #Debug
@@ -1058,52 +918,6 @@ def setleague(group = table, x=0,y=0, manual = True):
          else: delayed_whisper("Game already counts for the {}".format(me,knownLeagues[league]))
    setGlobalVariable('League',league)
    debugNotify(">>> setleague() with league: {}".format(league)) #Debug
-         
-def fetchCardScripts(group = table, x=0, y=0, silent = False): # Creates 2 dictionaries with all scripts for all cards stored, based on a web URL or the local version if that doesn't exist.
-   debugNotify(">>> fetchCardScripts()") #Debug
-   global CardsAA, CardsAS # Global dictionaries holding Card AutoActions and Card AutoScripts for all cards.
-   if not silent: whisper("+++ Fetching fresh scripts. Please Wait...")
-   if (len(players) > 1 or debugVerbosity == 0) and me.name != 'dbzer0': # I put my debug account to always use local scripts.
-      try: (ScriptsDownload, code) = webRead('https://raw.github.com/db0/Android-Netrunner-OCTGN/master/o8g/Scripts/CardScripts.py',5000)
-      except: 
-         debugNotify("Timeout Error when trying to download scripts", 0)
-         code = ScriptsDownload = None
-   else: # If we have only one player, we assume it's a debug game and load scripts from local to save time.
-      debugNotify("Skipping Scripts Download for faster debug", 0)
-      code = 0
-      ScriptsDownload = None
-   debugNotify("code:{}, text: {}".format(code, ScriptsDownload), 4) #Debug
-   if code != 200 or not ScriptsDownload or (ScriptsDownload and not re.search(r'ANR CARD SCRIPTS', ScriptsDownload)) or debugVerbosity >= 0: 
-      whisper(":::WARNING::: Cannot download card scripts at the moment. Will use locally stored ones.")
-      Split_Main = ScriptsLocal.split('=====') # Split_Main is separating the file description from the rest of the code
-   else: 
-      #WHAT THE FUUUUUCK? Why does it gives me a "value cannot be null" when it doesn't even come into this path with a broken connection?!
-      #WHY DOES IT WORK IF I COMMENT THE NEXT LINE. THIS MAKES NO SENSE AAAARGH!
-      #ScriptsLocal = ScriptsDownload #If we found the scripts online, then we use those for our scripts
-      Split_Main = ScriptsDownload.split('=====')
-   if debugVerbosity >= 5:  #Debug
-      notify(Split_Main[1])
-      notify('=====')
-   Split_Cards = Split_Main[1].split('.....') # Split Cards is making a list of a different cards
-   if debugVerbosity >= 5: #Debug
-      notify(Split_Cards[0]) 
-      notify('.....')
-   for Full_Card_String in Split_Cards:
-      if re.search(r'ENDSCRIPTS',Full_Card_String): break # If we have this string in the Card Details, it means we have no more scripts to load.
-      Split_Details = Full_Card_String.split('-----') # Split Details is splitting the card name from its scripts
-      if debugVerbosity >= 5:  #Debug
-         notify(Split_Details[0])
-         notify('-----')
-      # A split from the Full_Card_String always should result in a list with 2 entries.
-      debugNotify(Split_Details[0].strip(), 2) # If it's the card name, notify us of it.
-      Split_Scripts = Split_Details[2].split('+++++') # List item [1] always holds the two scripts. AutoScripts and AutoActions.
-      CardsAS[Split_Details[1].strip()] = Split_Scripts[0].strip()
-      CardsAA[Split_Details[1].strip()] = Split_Scripts[1].strip()
-   if turn > 0: whisper("+++ All card scripts refreshed!")
-   if debugVerbosity >= 4: # Debug
-      notify("CardsAS Dict:\n{}".format(str(CardsAS)))
-      notify("CardsAA Dict:\n{}".format(str(CardsAA))) 
-   debugNotify("<<< fetchCardScripts()", 3) #Debug
 
 def concede(group=table,x=0,y=0):
    mute()
@@ -1116,91 +930,6 @@ def concede(group=table,x=0,y=0):
 # Debugging
 #------------------------------------------------------------------------------
    
-def TrialError(group, x=0, y=0): # Debugging
-   global ds, debugVerbosity
-   mute()
-   #test()
-   delayed_whisper("## Checking Debug Verbosity")
-   if debugVerbosity >=0: 
-      if debugVerbosity == 0: 
-         debugVerbosity = 1
-      elif debugVerbosity == 1: debugVerbosity = 2
-      elif debugVerbosity == 2: debugVerbosity = 3
-      elif debugVerbosity == 3: debugVerbosity = 4
-      else: debugVerbosity = 0
-      whisper("Debug verbosity is now: {}".format(debugVerbosity))
-      return
-   delayed_whisper("## Checking my Name")
-   if me.name == 'db0' or me.name == 'dbzer0' or me.name == 'null': 
-      debugVerbosity = 0
-      fetchCardScripts()
-   delayed_whisper("## Checking players array size")
-   if not (len(players) == 1 or debugVerbosity >= 0): 
-      whisper("This function is only for development purposes")
-      return
-   ######## Testing Corner ########
-   #testHandRandom()
-   ###### End Testing Corner ######
-   delayed_whisper("## Defining Test Cards")
-   testcards = [
-                "bc0f047c-01b1-427f-a439-d451eda04061", 
-                "bc0f047c-01b1-427f-a439-d451eda04062",
-                # "bc0f047c-01b1-427f-a439-d451eda04063",
-                # "bc0f047c-01b1-427f-a439-d451eda04064",
-                # "bc0f047c-01b1-427f-a439-d451eda04065",
-                #"bc0f047c-01b1-427f-a439-d451eda04066",
-                #"bc0f047c-01b1-427f-a439-d451eda04067",
-                #"bc0f047c-01b1-427f-a439-d451eda04068",
-                "bc0f047c-01b1-427f-a439-d451eda04069",
-                #"bc0f047c-01b1-427f-a439-d451eda04070",
-                #"bc0f047c-01b1-427f-a439-d451eda04071",
-                #"bc0f047c-01b1-427f-a439-d451eda04072",
-                "bc0f047c-01b1-427f-a439-d451eda04073",
-                #"bc0f047c-01b1-427f-a439-d451eda04074",
-                #"bc0f047c-01b1-427f-a439-d451eda04075",
-                #"bc0f047c-01b1-427f-a439-d451eda04076",
-                #"bc0f047c-01b1-427f-a439-d451eda04077",
-                #"bc0f047c-01b1-427f-a439-d451eda04078",
-                "bc0f047c-01b1-427f-a439-d451eda04079",
-                "bc0f047c-01b1-427f-a439-d451eda04080"
-                ] 
-   if not ds: 
-      if confirm("corp?"): ds = "corp"
-      else: ds = "runner"
-   me.setGlobalVariable('ds', ds) 
-   me.counters['Credits'].value = 50
-   me.counters['Hand Size'].value = 5
-   me.counters['Tags'].value = 1
-   me.counters['Agenda Points'].value = 0
-   me.counters['Bad Publicity'].value = 10
-   me.Clicks = 15
-   notify("Variables Reset") #Debug   
-   if not playerside:  # If we've already run this command once, don't recreate the cards.
-      notify("Playerside not chosen yet. Doing now") #Debug   
-      chooseSide()
-      notify("About to create starting cards.") #Debug   
-      createStartingCards()
-   notify("<<< TrialError()") #Debug
-   if confirm("Spawn Test Cards?"):
-      for idx in range(len(testcards)):
-         test = table.create(testcards[idx], (70 * idx) - 650, 0, 1, True)
-         storeProperties(test)
-         if test.Type == 'ICE' or test.Type == 'Agenda' or test.Type == 'Asset': test.isFaceUp = False
-
-def debugChangeSides(group=table,x=0,y=0):
-   global ds
-   if debugVerbosity >=0:
-      delayed_whisper("## Changing side")
-      if ds == "corp": 
-         notify("Runner now")
-         ds = "runner"
-         me.setGlobalVariable('ds','runner')
-      else: 
-         ds = "corp"
-         me.setGlobalVariable('ds','corp')
-         notify("Corp Now")
-   else: whisper("Sorry, development purposes only")
-
 
 def ShowDicts():
    if debugVerbosity < 0: return

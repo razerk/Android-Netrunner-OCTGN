@@ -260,51 +260,6 @@ def createStartingCards():
          except: delayed_whisper("!!!ERROR!!! In createStartingCards()\n!!! Please Install Markers Set v2.2.1+ !!!")
    except: notify("!!!ERROR!!! {} - In createStartingCards()\n!!! PLEASE INSTALL MARKERS SET FILE !!!".format(me))
 
-
-def intJackin(group = table, x = 0, y = 0, manual = False):
-   debugNotify(">>> intJackin(){}".format(extraASDebug())) #Debug
-   mute()
-   if not Identity:
-      information("::: ERROR::: No identify found! Please load a deck which contains an identity card.")
-      return
-   else:
-      if Identity.group == table and not manual and not confirm("Are you sure you want to setup for a new game? (This action should only be done after a table reset)"): return
-   #for type in Automations: switchAutomation(type,'Announce') # Too much spam.
-   deck = me.piles['R&D/Stack']
-   debugNotify("Checking Deck", 3)
-   if len(deck) == 0:
-      whisper ("Please load a deck first!")
-      return
-   debugNotify("Placing Identity", 3)
-   debugNotify("Identity is: {}".format(Identity), 3)
-   if ds == "corp":
-      Identity.moveToTable((169 * flipBoard) + flipModX, (255 * flipBoard) + flipModY)
-      rnd(1,10) # Allow time for the ident to be recognised
-      modClicks(count = 3, action = 'set to')
-      me.MU = 0
-      notify("{} is the CEO of the {} Corporation".format(me,Identity))
-   else:
-      Identity.moveToTable((106 * flipBoard) + flipModX, (-331 * flipBoard) + flipModY)
-      rnd(1,10)  # Allow time for the ident to be recognised
-      modClicks(count = 4, action = 'set to')
-      me.MU = 4
-      BL = num(Identity.Cost)
-      me.counters['Base Link'].value = BL
-      notify("{} is representing the Runner {}. They start with {} {}".format(me,Identity,BL,uniLink()))
-   debugNotify("Creating Starting Cards", 3)
-   createStartingCards()
-   debugNotify("Shuffling Deck", 3)
-   shuffle(me.piles['R&D/Stack'])
-   debugNotify("Drawing 5 Cards", 3)
-   notify("{}'s {} is shuffled ".format(me,pileName(me.piles['R&D/Stack'])))
-   drawMany(me.piles['R&D/Stack'], 5)
-   debugNotify("Reshuffling Deck", 3)
-   shuffle(me.piles['R&D/Stack']) # And another one just to be sure
-   executePlayScripts(Identity,'STARTUP')
-   initGame()
-   setleague(manual = False) # Check if this is a league match
-   announceSupercharge()
-
 def createRemoteServer(group,x=0,y=0):
    debugNotify(">>> createSDF(){}".format(extraASDebug())) #Debug
    Server = table.create("d59fc50c-c727-4b69-83eb-36c475d60dcb", x, y - (40 * playerside), 1, False)

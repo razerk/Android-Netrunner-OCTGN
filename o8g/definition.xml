@@ -4,7 +4,7 @@
       name="Android-Netrunner" 
       id="0f38e453-26df-4c04-9d67-6d43de939c77" 
       octgnVersion="3.1.0.0" 
-      version="3.7.6.0"
+      version="3.8.0.0"
       markersize="20"
       tags="asymmetric cyberpunk LCG bluff duel"
       description="Android: Netrunner is an asymmetrical cyberpunk Card Game for two players.
@@ -27,12 +27,6 @@
       <script src="Scripts/CardScripts.py" />
    </scripts>
    <events>
-       <event name="OnTableLoad" action="chkTwoSided" />
-       <event name="OnGameStart" action="resetAll" />
-       <event name="OnLoadDeck" action="checkDeck" />
-       <event name="OnChangeCounter" action="parseNewCounters" />
-       <event name="OnMoveCard" action="checkMovedCard" />
-       <event name="OnGlobalVariableChanged" action="checkGlobalVars" />
    </events>
    <sounds>
       <!-- Common Sounds -->
@@ -160,28 +154,14 @@
       <cardaction menu="Use Card Ability/Clear" default="True" execute="useAbility" />
       <cardaction menu="Clear Card" default="False" execute="clear" />
       <groupactions menu="Game...">
-         <groupaction menu="Set up" default="False" shortcut="Ctrl+Shift+S" execute="intJackin" />
          <groupaction menu="Concede" default="False" shortcut="Ctrl+Shift+C" execute="concede" />
          <groupaction menu="(Un)Set as League match" default="False" shortcut="Ctrl+Alt+L" execute="setleague" />
-         <groupaction menu="Request/Switch Quick Access" default="False" execute="switchQuickAccess" />
          <groupaction menu="Switch Unicode ON/OFF" default="False" execute="switchUniCode" />
-         <groupaction menu="Switch Sound Effects ON/OFF" default="False" execute="switchSounds" />  
-         <groupaction menu="Switch Play, Score and Rez Automation ON/OFF" default="False" execute="switchPlayAutomation" />  
-         <groupaction menu="Switch Start/End-of-Turn Automation ON/OFF" default="False" execute="switchStartEndAutomation" />  
-         <groupaction menu="Switch Damage Automation ON/OFF" default="False" execute="switchDMGAutomation" />  
-         <groupaction menu="Switch Automatic Damage Prevention ON/OFF" default="False" execute="switchPreventDMGAutomation" />  
-         <groupaction menu="Switch Automatic Triggers ON/OFF" default="False" execute="switchTriggersAutomation" />  
-         <groupaction menu="Switch Custom Forms ON/OFF" default="False" execute="switchWinForms" />  
-         <groupaction menu="Re-Scan table" default="False" execute="scanTable" />
-         <groupaction menu="Re-Download all card automations" default="False" execute="fetchCardScripts" />
-         <groupaction menu="ReConnect" default="False" shortcut="Ctrl+Shift+Q" execute="reconnectMe" />
-         <groupaction menu="Debug" default="False" shortcut="Ctrl+Shift+D" execute="TrialError" /> 
-         <groupaction menu="Debug Side-Change" default="False" shortcut="Ctrl+Shift+P" execute="debugChangeSides" /> 
+         
       </groupactions>
       <cardaction menu="Debug Card" default="False" execute="DebugCard" /> 
       <groupactions menu="Turns/Clicks...">
          <groupaction menu="Declare Start of Turn" default="False" shortcut="F1" execute="goToSot" />
-         <!-- <groupaction menu="&#8986; Declare Click" default="False" shortcut="Enter" execute="useClick" /> Not used anymore -->
          <groupaction menu="Declare End of Turn" default="False" shortcut="F12" execute="goToEndTurn" />
       </groupactions>
       <groupactions menu="Runner Actions...">
